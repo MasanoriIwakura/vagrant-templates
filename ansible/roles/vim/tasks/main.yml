@@ -1,0 +1,29 @@
+---
+# tasks file for vim
+- name: Install vim
+  apt:
+    name: vim
+
+- name: Copy .vimrc
+  template:
+    src: .vimrc.j2
+    dest: "/home/{{ ansible_user }}/.vimrc"
+
+- name: Check exists dein
+  stat:
+    path: "/home/{{ ansible_user }}/.cache/dein"
+  register: exists_dein
+
+- name: Install dein
+  get_url:
+    url: https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh
+    dest: "/home/{{ ansible_user }}/installer.sh"
+    mode: 111
+  when: exists_dein.stat.exists == false
+
+- name: execute dein shell
+  shell: "/home/{{ ansible_user }}/installer.sh /home/{{ ansible_user }}/.cache/dein"
+  when: exists_dein.stat.exists == false
+  
+- name: Set permission to dein
+  command: "chown -R {{ ansible_user }}:{{ ansible_user }} /home/{{ ansible_user}}/.cache/dein"
